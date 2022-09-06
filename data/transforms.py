@@ -1,7 +1,67 @@
 import torch
 import torch.nn.functional as F
 import numpy as np
-from grid_sample2 import grid_sample
+
+def grid_sample(image, optical):
+    N, C, IH, IW = image.shape
+    _, H, W, _ = optical.shape
+
+    ix = optical[..., 0]
+    iy = optical[..., 1]
+
+    ix = ((ix + 1) / 2) * (IW - 1)
+    iy = ((iy + 1) / 2) * (IH - 1)
+    with torch.no_grad():
+        ix_nw = torch.floor(ix)
+        iy_nw = torch.floor(iy)
+        ix_ne = ix_nw + 1
+        iy_ne = iy_nw
+        ix_sw = ix_nw
+        iy_sw = iy_nw + 1
+        ix_se = ix_nw + 1
+        iy_se = iy_nw + 1
+
+    nw = (ix_se - ix) * (iy_se - iy)
+    ne = (ix - ix_sw) * (iy_sw - iy)
+    sw = (ix_ne - ix) * (iy - iy_ne)
+    se = (ix - ix_nw) * (iy - iy_nw)
+
+    with torch.no_grad():
+        ix_nw = IW - 1 - (IW - 1 - ix_nw.abs()).abs()
+        iy_nw = IH - 1 - (IH - 1 - iy_nw.abs()).abs()
+
+        ix_ne = IW - 1 - (IW - 1 - ix_ne.abs()).abs()
+        iy_ne = IH - 1 - (IH - 1 - iy_ne.abs()).abs()
+
+        ix_sw = IW - 1 - (IW - 1 - ix_sw.abs()).abs()
+        iy_sw = IH - 1 - (IH - 1 - iy_sw.abs()).abs()
+
+        ix_se = IW - 1 - (IW - 1 - ix_se.abs()).abs()
+        iy_se = IH - 1 - (IH - 1 - iy_se.abs()).abs()
+
+    image = image.view(N, C, IH * IW)
+
+    nw_val = torch.gather(
+        image, 2, (iy_nw * IW + ix_nw).long().view(N, 1, H * W).repeat(1, C, 1)
+    )
+    ne_val = torch.gather(
+        image, 2, (iy_ne * IW + ix_ne).long().view(N, 1, H * W).repeat(1, C, 1)
+    )
+    sw_val = torch.gather(
+        image, 2, (iy_sw * IW + ix_sw).long().view(N, 1, H * W).repeat(1, C, 1)
+    )
+    se_val = torch.gather(
+        image, 2, (iy_se * IW + ix_se).long().view(N, 1, H * W).repeat(1, C, 1)
+    )
+
+    out_val = (
+        nw_val.view(N, C, H, W) * nw.view(N, 1, H, W)
+        + ne_val.view(N, C, H, W) * ne.view(N, 1, H, W)
+        + sw_val.view(N, C, H, W) * sw.view(N, 1, H, W)
+        + se_val.view(N, C, H, W) * se.view(N, 1, H, W)
+    )
+
+    return out_val
 
 def img_like(img_shape):
     bchw = len(img_shape) == 4 and img_shape[-2:] != (1, 1)
@@ -15,11 +75,9 @@ def img_like(img_shape):
     )
     return bchw or bnc
 
-
 def num_tokens(img_shape):
     if len(img_shape) == 4 and img_shape[-2:] != (1, 1):
         return 0
-    # is_square = (int(int(np.sqrt(img_shape[1]))+.5)**2 == img_shape[1])
     is_one_off_square = int(int(np.sqrt(img_shape[1])) + 0.5) ** 2 == img_shape[1] - 1
     is_two_off_square = int(int(np.sqrt(img_shape[1])) + 0.5) ** 2 == img_shape[1] - 2
     return int(is_one_off_square * 1 or is_two_off_square * 2)
@@ -107,7 +165,6 @@ def stretch(img, x, axis="x"):
 
 
 def hyperbolic_rotate(img, angle):
-    bs, _, w, h = img.size()
     affineMatrices = torch.zeros(img.shape[0], 2, 3).to(img.device)
     affineMatrices[:, 0, 0] = torch.cosh(angle)
     affineMatrices[:, 0, 1] = torch.sinh(angle)
@@ -117,7 +174,6 @@ def hyperbolic_rotate(img, angle):
 
 
 def scale(img, s):
-    bs, _, w, h = img.size()
     affineMatrices = torch.zeros(img.shape[0], 2, 3).to(img.device)
     affineMatrices[:, 0, 0] = 1 - s
     affineMatrices[:, 1, 1] = 1 - s

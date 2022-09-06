@@ -1,21 +1,15 @@
-import torch
-import torch.nn.functional as F
-import torch.nn as nn
-
-# need to pip install ml_collections
-
 import os
-import sys
 import tqdm
-
-sys.path.append("pytorch-image-models")
-import timm.models
-
 import argparse
 import pandas as pd
 from functools import partial
 
-from loader import get_loaders
+import torch
+import torch.nn.functional as F
+import torch.nn as nn
+
+from elee import get_equivariance_metrics
+from data.loader import get_loaders, eval_average_metrics_wstd
 
 def convert_inplace_relu_to_relu(model):
     for child_name, child in model.named_children():
@@ -165,21 +159,6 @@ def selective_apply(m, fn):
         for c in m.children():
             selective_apply(c, fn)
 
-
-# def excluded(module):
-#     if isinstance(module,):
-#         return False
-#     if list(module.children()):
-#         return True # not a leaf
-#     if isinstance(module, nn.Dropout):
-#         return True
-#     return False
-
-# def register_store_inputs(module):
-#     module.register_forward_hook(store_inputs)
-# def register_store_estimator(module):
-#     module.register_backward_hook(store_estimator)
-#     #module.register_backward_hook(store_estimator) #which to use?
 def apply_hooks(model, lie_deriv_type):
     selective_apply(
         model, lambda m: m.register_forward_hook(partial(store_inputs, lie_deriv_type))
@@ -282,19 +261,17 @@ if __name__ == "__main__":
         help="translation or rotation",
     )
     args = parser.parse_args()
-    # if not os.path.exists(args.expt):
-    #     os.makedirs(args.expt)
-    # print(args.modelname)
-    # modelname = 'resnetblur50'
+    
+    if not os.path.exists(args.expt):
+        os.makedirs(args.expt)
+    print(args.modelname)
+    
     pretrained = True
     model = getattr(timm.models, args.modelname)(pretrained=pretrained)
     convert_inplace_relu_to_relu(model)
-    # model = nn.Sequential(*get_children(model))
-    # print(model)
     model.eval()
     device = torch.device("cuda")
     model.to(device)
-    # model.to('cpu')#cuda')
 
     # selectively apply hook to model
     # model.apply(register_store_inputs)

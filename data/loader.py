@@ -4,7 +4,7 @@ import pandas as pd
 
 import sys
 sys.path.append("pytorch-image-models")
-from timm.data import create_dataset
+from timm.data import create_dataset, create_loader, resolve_data_config
 
 def eval_average_metrics_wstd(loader, metrics, max_mbs=None):
     total = len(loader) if max_mbs is None else min(max_mbs, len(loader))

@@ -1,15 +1,12 @@
 import os
-import sys
 import wandb
 import numpy as np
-
-sys.path.append("pytorch-image-models")
-import timm.models
 import argparse
 import pandas as pd
 from functools import partial
 
-from loader import get_loaders
+from elee import get_equivariance_metrics
+from data.loader import get_loaders, eval_average_metrics_wstd
 
 def numparams(model):
     return sum(p.numel() for p in model.parameters())

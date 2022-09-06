@@ -1,1 +1,1 @@
-# lie-deriv
+# The Lie Derivative for Learned Equivariance

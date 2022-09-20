@@ -118,9 +118,7 @@ def affine_transform(affineMatrices, img):
 
 def translate(img, t, axis="x"):
     """Translates an image by a fraction of the size (sx,sy) in (0,1)"""
-    # assert shift.shape == (2,)
-
-    affineMatrices = torch.zeros(x.shape[0], 2, 3).to(img.device)  # .double()
+    affineMatrices = torch.zeros(img.shape[0], 2, 3).to(img.device)
     affineMatrices[:, 0, 0] = 1
     affineMatrices[:, 1, 1] = 1
     if axis == "x":
@@ -132,7 +130,7 @@ def translate(img, t, axis="x"):
 
 def rotate(img, angle):
     """Rotates an image by angle"""
-    affineMatrices = torch.zeros(img.shape[0], 2, 3).to(img.device)  # .double()
+    affineMatrices = torch.zeros(img.shape[0], 2, 3).to(img.device)
     affineMatrices[:, 0, 0] = torch.cos(angle)
     affineMatrices[:, 0, 1] = torch.sin(angle)
     affineMatrices[:, 1, 0] = -torch.sin(angle)
@@ -142,7 +140,7 @@ def rotate(img, angle):
 
 def shear(img, t, axis="x"):
     """Shear an image by an amount t"""
-    affineMatrices = torch.zeros(img.shape[0], 2, 3).to(img.device)  # .double()
+    affineMatrices = torch.zeros(img.shape[0], 2, 3).to(img.device)
     affineMatrices[:, 0, 0] = 1
     affineMatrices[:, 1, 1] = 1
     if axis == "x":
@@ -156,7 +154,7 @@ def shear(img, t, axis="x"):
 
 def stretch(img, x, axis="x"):
     """Stretch an image by an amount t"""
-    affineMatrices = torch.zeros(img.shape[0], 2, 3).to(img.device)  # .double()
+    affineMatrices = torch.zeros(img.shape[0], 2, 3).to(img.device)
     if axis == "x":
         affineMatrices[:, 0, 0] = 1 * (1 + x)
     else:

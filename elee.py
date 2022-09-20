@@ -1,5 +1,6 @@
 import torch
 import pandas as pd
+from data.transforms import *
 
 def jvp(f, x, u):
     """Jacobian vector product Df(x)u vs typical autograd VJP vTDF(x).
@@ -153,33 +154,16 @@ def get_equivariance_metrics(model, minibatch):
     model_out = model_probs(x)
 
     errs = {
-        "trans_x_deriv": translation_lie_deriv(model_probs, x, axis="x")
-        .abs()
-        .cpu()
-        .data.numpy(),
-        "trans_y_deriv": translation_lie_deriv(model_probs, x, axis="y")
-        .abs()
-        .cpu()
-        .data.numpy(),
-        "rot_deriv": rotation_lie_deriv(model_probs, x).abs().cpu().data.numpy(),
-        "shear_x_deriv": shear_lie_deriv(model_probs, x, axis="x")
-        .abs()
-        .cpu()
-        .data.numpy(),
-        "shear_y_deriv": shear_lie_deriv(model_probs, x, axis="y")
-        .abs()
-        .cpu()
-        .data.numpy(),
-        "stretch_x_deriv": stretch_lie_deriv(model_probs, x, axis="x")
-        .abs()
-        .cpu()
-        .data.numpy(),
-        "stretch_y_deriv": stretch_lie_deriv(model_probs, x, axis="y")
-        .abs()
-        .cpu()
-        .data.numpy(),
-        "saturate_err": saturate_lie_deriv(model_probs, x).abs().cpu().data.numpy(),
+        "trans_x_deriv": translation_lie_deriv(model_probs, x, axis="x"),
+        "trans_y_deriv": translation_lie_deriv(model_probs, x, axis="y"),
+        "rot_deriv": rotation_lie_deriv(model_probs, x),
+        "shear_x_deriv": shear_lie_deriv(model_probs, x, axis="x"),
+        "shear_y_deriv": shear_lie_deriv(model_probs, x, axis="y"),
+        "stretch_x_deriv": stretch_lie_deriv(model_probs, x, axis="x"),
+        "stretch_y_deriv": stretch_lie_deriv(model_probs, x, axis="y"),
+        "saturate_err": saturate_lie_deriv(model_probs, x),
     }
+    errs = {x: errs[x].abs().cpu().data.numpy() for x in errs}
 
     yhat = model_out.argmax(dim=1)  # .cpu()
     acc = (yhat == y).cpu().float().data.numpy()

@@ -1,5 +1,4 @@
 import torch
-import pandas as pd
 from data.transforms import *
 
 def jvp(f, x, u):
@@ -141,52 +140,3 @@ def saturate_lie_deriv(model, inp_imgs):
     lie_deriv = jvp(saturated_model, t, torch.ones_like(t))
     return lie_deriv
 
-
-def get_equivariance_metrics(model, minibatch):
-    x, y = minibatch
-    if torch.cuda.is_available():
-        model = model.cuda()
-        x, y = x.cuda(), y.cuda()
-
-    model = model.eval()
-
-    model_probs = lambda x: F.softmax(model(x), dim=-1)
-    model_out = model_probs(x)
-
-    errs = {
-        "trans_x_deriv": translation_lie_deriv(model_probs, x, axis="x"),
-        "trans_y_deriv": translation_lie_deriv(model_probs, x, axis="y"),
-        "rot_deriv": rotation_lie_deriv(model_probs, x),
-        "shear_x_deriv": shear_lie_deriv(model_probs, x, axis="x"),
-        "shear_y_deriv": shear_lie_deriv(model_probs, x, axis="y"),
-        "stretch_x_deriv": stretch_lie_deriv(model_probs, x, axis="x"),
-        "stretch_y_deriv": stretch_lie_deriv(model_probs, x, axis="y"),
-        "saturate_err": saturate_lie_deriv(model_probs, x),
-    }
-    errs = {x: errs[x].abs().cpu().data.numpy() for x in errs}
-
-    yhat = model_out.argmax(dim=1)  # .cpu()
-    acc = (yhat == y).cpu().float().data.numpy()
-
-    metrics = {}
-    metrics["acc"] = pd.Series(acc)
-
-    for k in errs:
-        # for i in range(model_out.shape[-1]):
-        #     metrics[k + str(i)] = pd.Series(errs[k][:,i])
-        metrics[k + "_mean"] = pd.Series(errs[k].mean(-1))
-    # print([f"{metric}: {value.shape}" for metric,value in metrics.items()])
-
-    for shift_x in range(8):
-        rolled_img = torch.roll(x, shift_x, 2)
-        rolled_yhat = model(rolled_img).argmax(dim=1)
-        consistency = (rolled_yhat == yhat).cpu().data.numpy()
-        metrics["consistency_x" + str(shift_x)] = pd.Series(consistency)
-    for shift_y in range(8):
-        rolled_img = torch.roll(x, shift_y, 3)
-        rolled_yhat = model(rolled_img).argmax(dim=1)
-        consistency = (rolled_yhat == yhat).cpu().data.numpy()
-        metrics["consistency_y" + str(shift_y)] = pd.Series(consistency)
-
-    df = pd.DataFrame.from_dict(metrics)
-    return df

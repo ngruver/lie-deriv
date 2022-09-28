@@ -17,12 +17,12 @@ from data.loader import get_loaders, eval_average_metrics_wstd
 def numparams(model):
     return sum(p.numel() for p in model.parameters())
 
-def get_metrics(key, loader, model, max_mbs=400):
-    lee_metrics = eval_average_metrics_wstd(
-        loader, partial(get_lee_metrics, model), max_mbs=max_mbs,
-    )
+def get_metrics(args, key, loader, model, max_mbs=400):
     discrete_metrics = eval_average_metrics_wstd(
         loader, partial(get_discrete_metrics, model), max_mbs=max_mbs,
+    )
+    lee_metrics = eval_average_metrics_wstd(
+        loader, partial(get_lee_metrics, model), max_mbs=max_mbs,
     )
     metrics = pd.concat([lee_metrics, discrete_metrics], axis=1)
 
@@ -36,13 +36,13 @@ def get_args_parser():
     parser = argparse.ArgumentParser(description='Training Config', add_help=False)
     parser.add_argument('--output_dir', metavar='NAME', default='equivariance_metrics_cnns',help='experiment name')
     parser.add_argument('--modelname', metavar='NAME', default='resnet18', help='model name')
-    parser.add_argument('--num_datapoints', type=int, default=400, help='use pretrained model')
+    parser.add_argument('--num_datapoints', type=int, default=60, help='use pretrained model')
     return parser
 
 def main(args):
-
     wandb.init(project="LieDerivEquivariance", config=args)
     args.__dict__.update(wandb.config)
+
     print(args)
 
     if not os.path.exists(args.output_dir):
@@ -68,8 +68,8 @@ def main(args):
     )
 
     evaluated_metrics += [
-        get_metrics("Imagenet_train", imagenet_train_loader, model),
-        get_metrics("Imagenet_test", imagenet_test_loader, model)
+        get_metrics(args, "Imagenet_train", imagenet_train_loader, model),
+        get_metrics(args, "Imagenet_test", imagenet_test_loader, model)
     ]
     gc.collect()
 
@@ -85,7 +85,7 @@ def main(args):
     #     val_split='validation',
     # )
 
-    # evaluated_metrics += [get_metrics("cifar100", cifar_test_loader, model, max_mbs=args.num_datapoints)]
+    # evaluated_metrics += [get_metrics(args, "cifar100", cifar_test_loader, model, max_mbs=args.num_datapoints)]
     # gc.collect()
 
     # _, retinopathy_loader = get_loaders(
@@ -100,7 +100,7 @@ def main(args):
     #     val_split="train",
     # )
 
-    # evaluated_metrics += [get_metrics("retinopathy", retinopathy_loader, model, max_mbs=args.num_datapoints)]
+    # evaluated_metrics += [get_metrics(args, "retinopathy", retinopathy_loader, model, max_mbs=args.num_datapoints)]
     # gc.collect()
 
     # _, histology_loader = get_loaders(
@@ -115,12 +115,11 @@ def main(args):
     #     val_split="train",
     # )
 
-    # evaluated_metrics += [get_metrics("histology", histology_loader, model, max_mbs=args.num_datapoints)]
+    # evaluated_metrics += [get_metrics(args, "histology", histology_loader, model, max_mbs=args.num_datapoints)]
     # gc.collect()
 
     df = pd.concat(evaluated_metrics)
     df.to_csv(os.path.join(args.output_dir, args.modelname + ".csv"))
-
 
 if __name__ == "__main__":
     args = get_args_parser().parse_args()

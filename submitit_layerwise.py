@@ -13,12 +13,12 @@ import os
 import uuid
 from pathlib import Path, PosixPath
 
-import exps_e2e
+import exps_e2e as exp
 import submitit
 import wandb
 
 def parse_args():
-    training_parser = exps_e2e.get_args_parser()
+    training_parser = exp.get_args_parser()
     parser = argparse.ArgumentParser("Submitit for ssl robustness", parents=[training_parser], add_help=False)
     parser.add_argument("--ngpus", default=1, type=int, help="Number of gpus to request on each node")
     parser.add_argument("--nodes", default=1, type=int, help="Number of nodes to request")
@@ -54,7 +54,7 @@ class Trainer(object):
         self.args = args
 
     def __call__(self):
-        import exps_e2e
+        import exps_e2e as exp
 
         self._setup_gpu_args()
 
@@ -62,7 +62,7 @@ class Trainer(object):
         args = copy.deepcopy(self.args)
         args.__dict__.update(path_args)
 
-        func = lambda: exps_e2e.main(args)
+        func = lambda: exp.main(args)
         wandb.agent(self.args.sweep_id, function=func, project="LieDerivEquivariance")
 
     def checkpoint(self):

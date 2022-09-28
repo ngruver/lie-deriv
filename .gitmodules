@@ -1,3 +1,6 @@
 [submodule "pytorch-image-models"]
 	path = pytorch-image-models
 	url = https://github.com/rwightman/pytorch-image-models
+[submodule "stylegan3"]
+	path = stylegan3
+	url = https://github.com/NVlabs/stylegan3

@@ -1,3 +1,18 @@
+minimal_models = {
+    "name": "minimal_models",
+    "method": "grid",
+    "parameters": {
+        "modelname": {"values": [
+            "vgg13",
+            "inception_resnet_v2",
+            "resnet50",
+            "wide_resnet50_2",
+            "densenet121",
+            "efficientnet_b1",
+        ]},
+    }
+}
+
 core_models = {
     "name": "core_models",
     "method": "grid",

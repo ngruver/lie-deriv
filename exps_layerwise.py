@@ -29,6 +29,7 @@ def prepare_model(model):
     convert_inplace_relu_to_relu(model)
     model.eval()
     model.to(torch.device("cuda"))
+    return model
 
 def get_layerwise(args, model, loader, func):
     errlist = []
@@ -51,9 +52,14 @@ def main(args):
     os.makedirs(args.output_dir, exist_ok=True)
 
     print(args.modelname)
+    print(args.transform)
     
     model = getattr(timm.models, args.modelname)(pretrained=True)
-    prepare_model(model)
+    # model = prepare_model(model)
+
+    convert_inplace_relu_to_relu(model)
+    model = model.eval()
+    model = model.to(torch.device("cuda"))
 
     _, loader = get_loaders(
         model,
@@ -65,30 +71,32 @@ def main(args):
         args=args,
     )
 
-    lee_transforms = ["translation","rotation","hyper_rotation","scale","saturate"]
-    if args.transform in lee_transforms:
-        lee_model = copy.deepcopy(model)
-        lee.apply_hooks(lee_model, args.transform)
-        lee_metrics = get_layerwise(
-            args, lee_model, loader, func=lee.compute_equivariance_attribution
-        )
+    # lee_transforms = ["translation","rotation","hyper_rotation","scale","saturate"]
+    # if args.transform in lee_transforms:
+    #     lee_model = copy.deepcopy(model)
+    #     lee.apply_hooks(lee_model, args.transform)
+    #     lee_metrics = get_layerwise(
+    #         args, lee_model, loader, func=lee.compute_equivariance_attribution
+    #     )
         
-        lee_output_dir = os.path.join(args.output_dir, "lee_" + args.transform)
-        os.makedirs(lee_output_dir, exist_ok=True)
-        lee_metrics.to_csv(os.path.join(lee_output_dir, args.modelname + ".csv"))
+    #     lee_output_dir = os.path.join(args.output_dir, "lee_" + args.transform)
+    #     os.makedirs(lee_output_dir, exist_ok=True)
+    #     lee_metrics.to_csv(os.path.join(lee_output_dir, args.modelname + ".csv"))
+
+    discrete.apply_hooks(model)
 
     discrete_transforms = ["integer_translation","translation","rotation"]
     if args.transform in discrete_transforms:
-        discrete_model = copy.deepcopy(model)
-        discrete.apply_hooks(discrete_model)
+        # discrete_model = copy.deepcopy(model)
+        # discrete.apply_hooks(discrete_model)
         func = partial(discrete.compute_equivariance_attribution, args.transform)
         discrete_metrics = get_layerwise(
-            args, discrete_model, loader, func=func
+            args, model, loader, func=func
         )
 
-        discrete_output_dir = os.path.join(args.output_dir, "discrete_" + args.transform)
+        discrete_output_dir = os.path.join(args.output_dir, "stylegan3_" + args.transform)
         os.makedirs(discrete_output_dir, exist_ok=True)    
-        discrete_metrics.to_csv(os.path.join(discrete_output_dir, args.modelname + ".csv"))
+        discrete_metrics.to_csv(os.path.join(discrete_output_dir, args.modelname + "_norm_sqrt" + ".csv"))
 
 
 def get_args_parser():
@@ -119,6 +127,7 @@ def get_args_parser():
 
 if __name__ == "__main__":
     args = get_args_parser().parse_args()
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        main(args)
+    main(args)
+    # with warnings.catch_warnings():
+    #     warnings.simplefilter("ignore")
+    #     main(args)

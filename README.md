@@ -37,7 +37,7 @@ We also include the wandb sweep configurations wandb [sweep configuration](https
 
 # Plotting and Visualization
 
-We make our results and plotting code available in a [google colab notebook](https://colab.research.google.com/drive/1mcMRYAdsOhrMcfqr-rZNVr9FmZzngECG?usp=sharing)
+We make our results and plotting code available in a [google colab notebook](https://colab.research.google.com/drive/1ehsYp4t5AnXJwBypmXcEE9vzkdslByTw?usp=sharing)
 
 # Citation
 

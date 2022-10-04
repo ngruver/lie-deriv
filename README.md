@@ -23,7 +23,7 @@ python exps_layerwise.py \
   --num_probes=100 \
   --transform=translation 
 ```
-Default models and transforms are available in our wandb [sweep configuration](https://github.com/ngruver/lie-deriv/blob/main/sweep_configs/e2e_configs.py)
+Default models and transforms are available in our wandb [sweep configuration](https://github.com/ngruver/lie-deriv/blob/main/sweep_configs/layerwise_configs.py)
 
 # End-to-end equivariance experiments
 
@@ -37,3 +37,8 @@ We also include the wandb sweep configurations wandb [sweep configuration](https
 
 # Plotting and Visualization
 
+We make our results and plotting code available in a [git colab notebook](https://colab.research.google.com/drive/1mcMRYAdsOhrMcfqr-rZNVr9FmZzngECG?usp=sharing)
+
+# Citation
+
+If you find our work helpful, please cite it with

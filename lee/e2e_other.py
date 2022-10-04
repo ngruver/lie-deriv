@@ -6,14 +6,14 @@ import pandas as pd
 import numpy as np
 
 import sys
-sys.path.append("../stylegan3")
+sys.path.append("stylegan3")
 from stylegan3.metrics.equivariance import (
     apply_integer_translation,
     apply_fractional_translation,
     apply_fractional_rotation,
 )
 
-from transforms import (
+from .transforms import (
     translate,
     rotate,
 )

@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from lie_derivs import *
+from .lie_derivs import *
 
 class flag:
     pass

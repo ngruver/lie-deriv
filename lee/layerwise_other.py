@@ -8,15 +8,15 @@ import torch
 import torch.nn.functional as F
 
 import sys
-sys.path.append("../stylegan3")
+sys.path.append("stylegan3")
 from metrics.equivariance import (
     apply_integer_translation,
     apply_fractional_translation,
     apply_fractional_rotation,
 )
 
-from layerwise_lee import selective_apply
-from transforms import img_like
+from .layerwise_lee import selective_apply
+from .transforms import img_like
 
 def EQ_T(module, img, model_out, translate_max=0.125):
     t = (torch.rand(2, device='cuda') * 2 - 1) * translate_max

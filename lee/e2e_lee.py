@@ -1,6 +1,6 @@
 import torch
 import pandas as pd
-from lie_derivs import *
+from .lie_derivs import *
 
 def get_equivariance_metrics(model, minibatch):
     x, y = minibatch

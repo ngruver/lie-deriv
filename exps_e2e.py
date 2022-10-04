@@ -10,9 +10,9 @@ import sys
 sys.path.append('pytorch-image-models')
 import timm
 
-from e2e_lee import get_equivariance_metrics as get_lee_metrics
-from e2e_discrete import get_equivariance_metrics as get_discrete_metrics
-from data.loader import get_loaders, eval_average_metrics_wstd
+from lee.e2e_lee import get_equivariance_metrics as get_lee_metrics
+from lee.e2e_other import get_equivariance_metrics as get_discrete_metrics
+from lee.loader import get_loaders, eval_average_metrics_wstd
 
 def numparams(model):
     return sum(p.numel() for p in model.parameters())

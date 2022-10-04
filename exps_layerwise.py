@@ -10,9 +10,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-import layerwise_lee as lee
-import layerwise_discrete as discrete
-from data.loader import get_loaders
+import lee.layerwise_lee as lee
+import lee.layerwise_other as other_metrics
+from lee.loader import get_loaders
 
 import sys
 sys.path.append('pytorch-image-models')
@@ -83,20 +83,21 @@ def main(args):
     #     os.makedirs(lee_output_dir, exist_ok=True)
     #     lee_metrics.to_csv(os.path.join(lee_output_dir, args.modelname + ".csv"))
 
-    discrete.apply_hooks(model)
+    other_metrics.apply_hooks(model)
 
-    discrete_transforms = ["integer_translation","translation","rotation"]
-    if args.transform in discrete_transforms:
-        # discrete_model = copy.deepcopy(model)
-        # discrete.apply_hooks(discrete_model)
-        func = partial(discrete.compute_equivariance_attribution, args.transform)
-        discrete_metrics = get_layerwise(
+    other_metrics_transforms = ["integer_translation","translation","rotation"]
+    if args.transform in other_metrics_transforms:
+        # other_metrics_model = copy.deepcopy(model)
+        # other_metrics.apply_hooks(other_metrics_model)
+        func = partial(other_metrics.compute_equivariance_attribution, args.transform)
+        other_metrics_results = get_layerwise(
             args, model, loader, func=func
         )
 
-        discrete_output_dir = os.path.join(args.output_dir, "stylegan3_" + args.transform)
-        os.makedirs(discrete_output_dir, exist_ok=True)    
-        discrete_metrics.to_csv(os.path.join(discrete_output_dir, args.modelname + "_norm_sqrt" + ".csv"))
+        other_metrics_output_dir = os.path.join(args.output_dir, "stylegan3_" + args.transform)
+        os.makedirs(other_metrics_output_dir, exist_ok=True)
+        results_fn = args.modelname + "_norm_sqrt" + ".csv"
+        other_metrics_results.to_csv(os.path.join(other_metrics_output_dir, results_fn))
 
 
 def get_args_parser():

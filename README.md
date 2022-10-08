@@ -33,7 +33,7 @@ python exps_e2e.py \
   --output_dir=$HOME/lee_results \
   --num_datapoints=100 
 ```
-We also include the wandb sweep configurations wandb [sweep configuration](https://github.com/ngruver/lie-deriv/blob/main/sweep_configs/e2e_configs.py) for our end-to-end equivariance experiments. 
+We also include the wandb [sweep configuration](https://github.com/ngruver/lie-deriv/blob/main/sweep_configs/e2e_configs.py) for our end-to-end equivariance experiments. 
 
 # Plotting and Visualization
 
@@ -42,3 +42,15 @@ We make our results and plotting code available in a [google colab notebook](htt
 # Citation
 
 If you find our work helpful, please cite it with
+
+```
+@misc{https://doi.org/10.48550/arxiv.2210.02984,
+  doi = {10.48550/ARXIV.2210.02984},
+  url = {https://arxiv.org/abs/2210.02984},
+  author = {Gruver, Nate and Finzi, Marc and Goldblum, Micah and Wilson, Andrew Gordon},
+  title = {The Lie Derivative for Measuring Learned Equivariance},
+  publisher = {arXiv},
+  year = {2022},
+  copyright = {Creative Commons Attribution 4.0 International}
+}
+```

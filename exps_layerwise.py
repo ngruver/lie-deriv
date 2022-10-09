@@ -25,12 +25,6 @@ def convert_inplace_relu_to_relu(model):
         else:
             convert_inplace_relu_to_relu(child)
 
-def prepare_model(model):
-    convert_inplace_relu_to_relu(model)
-    model.eval()
-    model.to(torch.device("cuda"))
-    return model
-
 def get_layerwise(args, model, loader, func):
     errlist = []
     for idx, (x, _) in tqdm.tqdm(
@@ -55,8 +49,7 @@ def main(args):
     print(args.transform)
     
     model = getattr(timm.models, args.modelname)(pretrained=True)
-    # model = prepare_model(model)
-
+    
     convert_inplace_relu_to_relu(model)
     model = model.eval()
     model = model.to(torch.device("cuda"))
@@ -71,24 +64,22 @@ def main(args):
         args=args,
     )
 
-    # lee_transforms = ["translation","rotation","hyper_rotation","scale","saturate"]
-    # if args.transform in lee_transforms:
-    #     lee_model = copy.deepcopy(model)
-    #     lee.apply_hooks(lee_model, args.transform)
-    #     lee_metrics = get_layerwise(
-    #         args, lee_model, loader, func=lee.compute_equivariance_attribution
-    #     )
+    lee_transforms = ["translation","rotation","hyper_rotation","scale","saturate"]
+    if args.use_lee and (args.transform in lee_transforms):
+        lee_model = copy.deepcopy(model)
+        lee.apply_hooks(lee_model, args.transform)
+        lee_metrics = get_layerwise(
+            args, lee_model, loader, func=lee.compute_equivariance_attribution
+        )
         
-    #     lee_output_dir = os.path.join(args.output_dir, "lee_" + args.transform)
-    #     os.makedirs(lee_output_dir, exist_ok=True)
-    #     lee_metrics.to_csv(os.path.join(lee_output_dir, args.modelname + ".csv"))
-
-    other_metrics.apply_hooks(model)
+        lee_output_dir = os.path.join(args.output_dir, "lee_" + args.transform)
+        os.makedirs(lee_output_dir, exist_ok=True)
+        lee_metrics.to_csv(os.path.join(lee_output_dir, args.modelname + ".csv"))
 
     other_metrics_transforms = ["integer_translation","translation","rotation"]
-    if args.transform in other_metrics_transforms:
-        # other_metrics_model = copy.deepcopy(model)
-        # other_metrics.apply_hooks(other_metrics_model)
+    if (not args.use_lee) and (args.transform in other_metrics_transforms):
+        other_metrics_model = copy.deepcopy(model)
+        other_metrics.apply_hooks(other_metrics_model)
         func = partial(other_metrics.compute_equivariance_attribution, args.transform)
         other_metrics_results = get_layerwise(
             args, model, loader, func=func
@@ -123,6 +114,9 @@ def get_args_parser():
         metavar="NAME",
         default="translation",
         help="translation or rotation",
+    )
+    parser.add_argument(
+        "--use_lee", type=int, default=0, help="Use LEE (rather than metric not in limit)"
     )
     return parser
 

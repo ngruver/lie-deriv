@@ -82,7 +82,7 @@ def main(args):
         other_metrics.apply_hooks(other_metrics_model)
         func = partial(other_metrics.compute_equivariance_attribution, args.transform)
         other_metrics_results = get_layerwise(
-            args, model, loader, func=func
+            args, other_metrics_model, loader, func=func
         )
 
         other_metrics_output_dir = os.path.join(args.output_dir, "stylegan3_" + args.transform)
@@ -98,7 +98,7 @@ def get_args_parser():
         '--output_dir', metavar='NAME', default='equivariance_metrics_cnns',help='experiment name'
     )
     parser.add_argument(
-        "--modelname", metavar="NAME", default="resnetblur18", help="model name"
+        "--modelname", metavar="NAME", default="resnet50", help="model name"
     )
     parser.add_argument(
         "--num_imgs", type=int, default=20, help="Number of images to evaluate over"
